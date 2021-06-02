@@ -3,6 +3,9 @@ from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from .forms import RegistrationForm
 from .models import Account
+from carts.models import Cart, CartItem
+from carts.views import _cart_id
+import requests
 
 # Verification email
 from django.contrib.sites.shortcuts import get_current_site
@@ -58,9 +61,56 @@ def login(request):
 
 		user = auth.authenticate(email=email, password=password)
 		if user:
+			try:
+				cart = Cart.objects.get(cart_id=_cart_id(request))
+				does_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
+
+				if does_cart_item_exist:
+					cart_items = CartItem.objects.filter(cart=cart)
+					product_variations = []
+
+					# getting the product variation by cart id
+					ids = []
+					for cart_item in cart_items:
+						variation = cart_item.variations.all()
+						product_variations.append(list(variation))
+						ids.append(cart_item.id)
+
+					# getting the cart items from the user to access his product variations
+					cart_items = CartItem.objects.filter(user=user)
+					existing_product_variaions = []
+					ex_ids = []
+					for item in cart_items:
+						variation = item.variations.all()
+						existing_product_variaions.append(list(variation))
+						ex_ids.append(item.id)
+
+					for index_, product_variation in enumerate(product_variations):
+						if product_variation in existing_product_variaions:
+							index = existing_product_variaions.index(product_variation)
+							item_id = ex_ids[index]
+							item = CartItem.objects.get(id=item_id)
+							pr_item = CartItem.objects.get(id=ids[index_])
+							item.quantity += pr_item.quantity
+							item.user = user
+							item.save()
+						else:
+							cart_item = CartItem.objects.get(id=ids[index_])
+							cart_item.user = user
+							cart_item.save()
+			except:
+				pass
 			auth.login(request, user)
 			messages.success(request, 'You are logged in.')
-			return redirect('dashboard')
+			url = request.META.get('HTTP_REFERER')
+			try:
+				query = requests.utils.urlparse(url).query
+				params = dict(x.split('=') for x in query.split('&'))
+				if 'next' in params:
+					next_page = params.get('next')
+					return redirect(next_page)
+			except:		
+				return redirect('dashboard')
 		else:
 			messages.error(request, 'Invalid login credentials')
 			return redirect('login')
