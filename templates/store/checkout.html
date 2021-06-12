@@ -8,7 +8,7 @@
 <div class="container">
 
 <!-- ============================ COMPONENT 1 ================================= -->
-<form action="" method="POST">
+<form action="{% url 'place_order' %}" method="POST">
 {% csrf_token %}
 <div class="row">
 	<aside class="col-lg-6">
@@ -32,7 +32,7 @@
 				</div>
 				<div class="col form-group">
 					<label>Phone Number</label>
-					<input type="text" name="phone_number" class="form-control" required>
+					<input type="text" name="phone" class="form-control" required>
 				</div>
 			</div>
 			<div class="form-row">
