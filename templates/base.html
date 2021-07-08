@@ -113,7 +113,7 @@ $(document).ready(function() {
 					<div class="widget-header">
 						<small class="title text-muted">Welcome {{ user.first_name }}</small>
 						<div> 
-							<a href="#">Dashboard</a> <span class="dark-transp"> | </span>
+							<a href="{% url 'dashboard' %}">Dashboard</a> <span class="dark-transp"> | </span>
 							<a href="{% url 'logout' %}"> Sign out</a>
 						</div>
 					</div>
@@ -168,3 +168,15 @@ $(document).ready(function() {
 	</div><!-- //container -->
 </footer>
 <!-- ========================= FOOTER END // ========================= -->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('.thumb a').click(function(e){
+			e.preventDefault();
+			$('.mainImage img').attr('src', $(this).attr('href'));
+		})
+	})
+</script>
+</body>
+</html>
